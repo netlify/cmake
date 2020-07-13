@@ -1,10 +1,10 @@
-find_program(LLVM_OBJCOPY_EXECUTABLE NAMES llvm-objcopy)
-find_program(LLVM_OBJDUMP_EXECUTABLE NAMES llvm-objdump)
-find_program(LLVM_RANLIB_EXECUTABLE NAMES llvm-ranlilb)
-find_program(LLVM_AR_EXECUTABLE NAMES llvm-ar)
-find_program(LLVM_NM_EXECUTABLE NAMES llvm-nm)
+find_program(LLVM_OBJCOPY_EXECUTABLE NAMES llvm-objcopy-10)
+find_program(LLVM_OBJDUMP_EXECUTABLE NAMES llvm-objdump-10)
+find_program(LLVM_RANLIB_EXECUTABLE NAMES llvm-ranlilb-10)
+find_program(LLVM_AR_EXECUTABLE NAMES llvm-ar-10)
+find_program(LLVM_NM_EXECUTABLE NAMES llvm-nm-10)
 
-find_program(LLD_LINKER_EXECUTABLE NAMES lld)
+find_program(LLD_LINKER_EXECUTABLE NAMES lld-10)
 
 find_program(SCCACHE_EXECUTABLE NAMES sccache)
 
@@ -17,8 +17,8 @@ set(CMAKE_C_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 11)
 
-set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++-10)
+set(CMAKE_C_COMPILER clang-10)
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
