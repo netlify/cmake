@@ -1,4 +1,5 @@
 include(FindPackageHandleStandardArgs)
+include(FeatureSummary)
 
 find_program(ClangFormat_Git_EXECUTABLE NAMES git-clang-format)
 find_program(ClangFormat_EXECUTABLE NAMES clang-format)
@@ -12,6 +13,12 @@ find_package_handle_standard_args(ClangFormat
   REQUIRED_VARS ClangFormat_EXECUTABLE
   VERSION_VAR ClangFormat_VERSION
   HANDLE_COMPONENTS)
+
+set_package_properties(ClangFormat
+  PROPERTIES
+    DESCRIPTION "A tool to format C, C++, and Protobuf code."
+    URL "https://clang.llvm.org/docs/ClangFormat.html")
+
 
 if (ClangFormat_Git_FOUND AND NOT TARGET Clang::Format::Git)
   add_executable(Clang::Format::Git IMPORTED)

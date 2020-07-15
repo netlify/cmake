@@ -1,6 +1,7 @@
 include(FindPackageHandleStandardArgs)
 include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
+include(FeatureSummary)
 
 cmake_push_check_state(RESET)
 set(CMAKE_REQUIRED_LINK_OPTIONS -fsanitize=address)
@@ -14,6 +15,11 @@ endif()
 
 find_package_handle_standard_args(AddressSanitizer
   REQUIRED_VARS AddressSanitizer_FLAG)
+
+set_package_properties(AddressSanitizer
+  PROPERTIES
+    DESCRIPTION "Fast memory error detector"
+    URL "https://clang.llvm.org/docs/AddressSanitizer.html")
 
 if (AddressSanitizer_FOUND)
   mark_as_advanced(AddressSanitizer_FLAG)

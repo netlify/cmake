@@ -32,10 +32,11 @@ set(CMAKE_EXPORT_PACKAGE_REGISTRY OFF CACHE BOOL "")
 set(CMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY ON CACHE BOOL "")
 set(CMAKE_FIND_USE_PACKAGE_REGISTRY OFF CACHE BOOL "")
 
-set_property(GLOBAL APPEND PROPERTY FeatureSummary_PKG_TYPES Tool Development)
+set_property(GLOBAL APPEND PROPERTY FeatureSummary_PKG_TYPES Tool Sanitizers Development)
 set_property(GLOBAL PROPERTY FeatureSummary_REQUIRED_DESCRIPTION "build dependencies")
 
 set_property(GLOBAL PROPERTY FeatureSummary_Development_DESCRIPTION "development dependencies")
+set_property(GLOBAL PROPERTY FeatureSummary_Sanitizers_DESCRIPTION "sanitizers")
 set_property(GLOBAL PROPERTY FeatureSummary_Tool_DESCRIPTION "development tools")
 
 set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED YES)

@@ -1,6 +1,6 @@
 find_program(LLVM_OBJCOPY_EXECUTABLE NAMES llvm-objcopy-10)
 find_program(LLVM_OBJDUMP_EXECUTABLE NAMES llvm-objdump-10)
-find_program(LLVM_RANLIB_EXECUTABLE NAMES llvm-ranlilb-10)
+find_program(LLVM_RANLIB_EXECUTABLE NAMES llvm-ranlib-10)
 find_program(LLVM_AR_EXECUTABLE NAMES llvm-ar-10)
 find_program(LLVM_NM_EXECUTABLE NAMES llvm-nm-10)
 

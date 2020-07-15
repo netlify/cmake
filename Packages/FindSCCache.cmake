@@ -1,4 +1,5 @@
 include(FindPackageHandleStandardArgs)
+include(FeatureSummary)
 
 find_program(SCCache_EXECUTABLE NAMES sccache)
 find_version(SCCache_VERSION COMMAND "${SCCache_EXECUTABLE}" DOC "SCCache Version")
@@ -6,6 +7,11 @@ find_version(SCCache_VERSION COMMAND "${SCCache_EXECUTABLE}" DOC "SCCache Versio
 find_package_handle_standard_args(SCCache
   REQUIRED_VARS SCCache_EXECUTABLE
   VERSION_VAR SCCache_VERSION)
+
+set_package_properties(SCCache
+  PROPERTIES
+    DESCRIPTION "Shared Compilation Cache"
+    URL "https://github.com/mozilla/sccache")
 
 if (SCCache_FOUND AND NOT TARGET SCCache::SCCache)
   add_executable(SCCache::SCCache IMPORTED)

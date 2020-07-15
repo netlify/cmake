@@ -24,7 +24,11 @@ include(FindVersion)
 # Build Dependencies
 find_package(UndefinedBehaviorSanitizer)
 find_package(AddressSanitizer)
-find_package(Coverage REQUIRED)
+find_package(MemorySanitizer)
+find_package(ThreadSanitizer)
+find_package(SafeStack)
+
+find_package(Coverage COMPONENTS LLVM QUIET)
 find_package(Threads REQUIRED)
 
 # Build Tooling Dependencies
@@ -52,128 +56,115 @@ if (TARGET SCCache::SCCache AND NOT CMAKE_C_COMPILER_LAUNCHER)
   get_property(CMAKE_C_COMPILER_LAUNCHER TARGET SCCache::SCCache PROPERTY IMPORTED_LOCATION)
 endif()
 
-# IWYU is very... odd, and honestly barely works with our codebase.
-# it doesn't seem to understand half of what our code does, and incorrectly labels
-# headers to include
-#if (TARGET IWYU::IWYU AND NOT CMAKE_CXX_INCLUDE_WHAT_YOU_USE)
-#  get_property(CMAKE_CXX_INCLUDE_WHAT_YOU_USE TARGET IWYU::IWYU PROPERTY IMPORTED_LOCATION)
-#  list(APPEND CMAKE_CXX_INCLUDE_WHAT_YOU_USE -Xiwyu --no_default_mappings)
-#  list(APPEND CMAKE_CXX_INCLUDE_WHAT_YOU_USE -Xiwyu --prefix_header_includes=keep)
-#  list(APPEND CMAKE_CXX_INCLUDE_WHAT_YOU_USE -Xiwyu --transitive_includes_only)
-#endif()
-
 if (TARGET Clang::Tidy AND NOT CMAKE_CXX_CLANG_TIDY)
   get_property(CMAKE_CXX_CLANG_TIDY TARGET Clang::Tidy PROPERTY IMPORTED_LOCATION)
 endif()
 
-# Setup Feature Summary Descriptions Here
-
 string(MAKE_C_IDENTIFIER "${PROJECT_NAME}" project-name)
 string(TOUPPER "${project-name}" project-name)
 
+# TODO:
+# It will be easier and more correct to just make these mutually exclusive
+list(APPEND safe-stack-requirements "TARGET Sanitizer::SafeStack")
+list(APPEND safe-stack-requirements "NOT ${project-name}_WITH_ASAN")
+list(APPEND safe-stack-requirements "NOT ${project-name}_WITH_TSAN")
+list(APPEND safe-stack-requirements "NOT ${project-name}_WITH_MSAN")
+
+list(APPEND thread-san-requirements "TARGET Sanitizer::Thread")
+list(APPEND thread-san-requirements "NOT ${project-name}_WITH_SAFE_STACK")
+list(APPEND thread-san-requirements "NOT ${project-name}_WITH_ASAN")
+list(APPEND thread-san-requirements "NOT ${project-name}_WITH_MSAN")
+
+list(APPEND memory-san-requirements "TARGET Sanitizer::Memory")
+list(APPEND memory-san-requirements "NOT ${project-name}_WITH_SAFE_STACK")
+list(APPEND memory-san-requirements "NOT ${project-name}_WITH_ASAN")
+list(APPEND memory-san-requirements "NOT ${project-name}_WITH_TSAN")
+
 cmake_dependent_option(${project-name}_BUILD_TESTS
-  "Build ${PROJECT_NAME} Unit Tests" ON
+  "Build ${PROJECT_NAME} unit tests" ON
   "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;BUILD_TESTING" OFF)
 cmake_dependent_option(${project-name}_BUILD_DOCS
-  "Build ${PROJECT_NAME} Documentation" ON
+  "Build ${PROJECT_NAME} documentation" ON
   "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Sphinx::Build" OFF)
-cmake_dependent_option(${project-name}_WITH_LTO
-  "Build ${PROJECT_NAME} with Link Time Optimization" ON
-  "CMAKE_BUILD_TYPE STREQUAL \"Release\";NETLIFY_IPO_SUPPORTED" OFF)
-cmake_dependent_option(${project-name}_WITH_COVERAGE
-  "Build ${PROJECT_NAME} with Code Coverage" ON
-  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Coverage::Coverage" OFF)
 
-cmake_dependent_option(${project-name}_ENABLE_UNDEFINED_BEHAVIOR_SANITIZER
-  "Build ${PROJECT_NAME} with Undefined Behavior Sanitizer" OFF
-  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Sanitizer::UndefinedBehavior" OFF)
-cmake_dependent_option(${project-name}_ENABLE_ADDRESS_SANITIZER
-  "Build ${PROJECT_NAME} with Address Sanitizer" OFF
-  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Sanitizer::Address" OFF)
-cmake_dependent_option(${project-name}_ENABLE_SAFE_STACK
-  "Build ${PROJECT_NAME} with Safe Stack instrumentation pass" OFF
-  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Sanitizer::SafeStack" OFF)
+cmake_dependent_option(${project-name}_WITH_COVERAGE
+  "Build ${PROJECT_NAME} Tests with Code Coverage" ON
+  "${project-name}_BUILD_TESTS;TARGET LLVM::Coverage" OFF)
+
+cmake_dependent_option(${project-name}_WITH_SAFE_STACK
+  "Build ${PROJECT_NAME} With Safe Stack instrumentation pass" OFF
+  "${safe-stack-requirements}" OFF)
+cmake_dependent_option(${project-name}_WITH_UBSAN
+  "Build ${PROJECT_NAME} with UndefinedBehaviorSanitizer" OFF
+  "TARGET Sanitizer::UndefinedBehavior" OFF)
+cmake_dependent_option(${project-name}_WITH_ASAN
+  "Build ${PROJECT_NAME} with AddressSanitizer" OFF
+  "TARGET Sanitizer::Address" OFF)
+# Temporarily disabled until we are on libc++ everywhere
+cmake_dependent_option(${project-name}_WITH_TSAN
+  "Build ${PROJECT_NAME} with ThreadSanitizer" OFF
+  "${thread-san-requirements}" OFF)
+# Requires a fully instrumented set of libraries and toolchains. Disabled until
+# we can do that.
+#cmake_dependent_option(${project-name}_WITH_MSAN
+#  "Build ${PROJECT_NAME} with MemorySanitizer" OFF
+#  "TARGET Sanitizer::Memory;NOT ${project-name}_WITH_ASAN" OFF)
+
+# Temporarily disabled until it can be enabled in a clean and useful way
+#cmake_dependent_option(${project-name}_WITH_LTO
+#  "Build ${PROJECT_NAME} with Link Time Optimization" ON
+#  "CMAKE_BUILD_TYPE STREQUAL \"Release\";NETLIFY_IPO_SUPPORTED" OFF)
 
 check_compiler_diagnostic(strict-aliasing)
+check_compiler_diagnostic(thread-safety)
+check_compiler_diagnostic(documentation)
 check_compiler_diagnostic(uninitialized)
 check_compiler_diagnostic(useless-cast)
 check_compiler_diagnostic(cast-align)
+check_compiler_diagnostic(lifetime)
 check_compiler_diagnostic(pedantic)
 check_compiler_diagnostic(extra)
+
+# Setup Feature Summary Descriptions Here
+add_feature_info("Documentation" ${project-name}_BUILD_DOCS "Generate Documentation")
+add_feature_info("Unit Tests" ${project-name}_BUILD_TESTS "Enable Unit Tests")
+
+add_feature_info("Safe Stack" ${project-name}_WITH_SAFE_STACK "Enable Safe Stack instrumentation pass")
+add_feature_info("UBSan" ${project-name}_WITH_UBSAN "Enable UndefinedBehaviorSanitizer")
+add_feature_info("ASan" ${project-name}_WITH_ASAN "Enable AddressSanitizer")
+add_feature_info("TSan" ${project-name}_WITH_TSAN "Enable ThreadSanitizer")
+add_feature_info("MSan" ${project-name}_WITH_MSAN "Enable MemorySanitizer")
+
+set_package_properties(Threads PROPERTIES DESCRIPTION "System Threading Library")
+
+set_package_properties(UndefinedBehaviorSanitizer PROPERTIES TYPE Sanitizers)
+set_package_properties(AddressSanitizer PROPERTIES TYPE Sanitizers)
+set_package_properties(ThreadSanitizer PROPERTIES TYPE Sanitizers)
+set_package_properties(MemorySanitizer PROPERTIES TYPE Sanitizers)
+set_package_properties(SafeStack PROPERTIES TYPE Sanitizers)
+
+set_package_properties(Coverage PROPERTIES TYPE Development)
+
+set_package_properties(ClangFormat PROPERTIES TYPE Tool)
+set_package_properties(ClangTidy PROPERTIES TYPE Tool)
+set_package_properties(SCCache PROPERTIES TYPE Tool)
+set_package_properties(Sphinx PROPERTIES TYPE Tool)
+set_package_properties(IWYU PROPERTIES TYPE Tool)
+
+set_property(DIRECTORY APPEND PROPERTY LINK_LIBRARIES
+  $<$<BOOL:${${project-name}_WITH_SAFE_STACK}>:Sanitizer::SafeStack>
+
+  $<$<BOOL:${${project-name}_WITH_UBSAN}>:Sanitizer::UndefinedBehavior>
+  $<$<BOOL:${${project-name}_WITH_ASAN}>:Sanitizer::Address>
+  #[[$<$<BOOL:${${project-name}_WITH_MSAN}>:Sanitizer::Memory>]]
+  $<$<BOOL:${${project-name}_WITH_TSAN}>:Sanitizer::Thread>)
 
 add_compile_options($<$<AND:$<COMPILE_LANG_AND_ID:CXX,Clang>,$<CONFIG:Debug>>:-ggdb3>)
 add_compile_options($<$<AND:$<COMPILE_LANG_AND_ID:CXX,Clang>,$<CONFIG:Debug>>:-Og>)
 add_compile_options($<$<COMPILE_LANG_AND_ID:CXX,Clang>:-fcolor-diagnostics>)
 add_compile_options($<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wall>)
 
-set_property(DIRECTORY APPEND PROPERTY LINK_LIBRARIES
-  $<$<BOOL:${${project-name}_ENABLE_UNDEFINED_BEHAVIOR_SANITIZER}>:Sanitizer::UndefinedBehavior>
-  $<$<BOOL:${${project-name}_ENABLE_ADDRESS_SANITIZER}>:Sanitizer::Address>
-  $<$<BOOL:${${project-name}_ENABLE_SAFE_STACK}>:Sanitizer::SafeStack>)
-
-add_feature_info("Link Time Optimization" ${project-name}_WITH_LTO
-  "Better optimizations at the expense of longer link times")
-add_feature_info("Code Profiling" ${project-name}_WITH_PROFILING "Generate profiling data")
-add_feature_info("Code Coverage" ${project-name}_WITH_COVERAGE "Generate coverage reports")
-
-add_feature_info("Documentation" ${project-name}_BUILD_DOCS "Generate Documentation")
-add_feature_info("Unit Tests" ${project-name}_BUILD_TESTS "Build Unit Tests")
-
-add_feature_info("Undefined Behavior Sanitizer"
-  ${project-name}_ENABLE_UNDEFINED_BEHAVIOR_SANITIZER
-  "Enable undefined behavior sanitizer")
-add_feature_info("Address Sanitizer"
-  ${project-name}_ENABLE_ADDRESS_SANITIZER
-  "Enable address sanitizer")
-add_feature_info("Safe Stack"
-  ${project-name}_ENABLE_SAFE_STACK
-  "Enable safe stack instrumentation pass")
-
-set_package_properties(Threads PROPERTIES DESCRIPTION "System Threading Library")
-
-set_package_properties(Coverage
-  PROPERTIES
-    DESCRIPTION "Code coverage"
-    TYPE Development)
-set_package_properties(AddressSanitizer
-  PROPERTIES
-    DESCRIPTION "Address Sanitizer"
-    TYPE Development)
-set_package_properties(SafeStack
-  PROPERTIES
-    DESCRIPTION "Safe Stack"
-    TYPE Development)
-set_package_properties(UndefinedBehaviorSanitizer
-  PROPERTIES
-    DESCRIPTION "Undefined Behavior Sanitizer"
-    TYPE Development)
-set_package_properties(ClangFormat
-  PROPERTIES
-    DESCRIPTION "A tool to format C, C++, and Protobuf code."
-    TYPE Tool
-    URL "https://clang.llvm.org/docs/ClangFormat.html")
-set_package_properties(ClangTidy
-  PROPERTIES
-    DESCRIPTION "Clang based C++ 'linter' tool"
-    TYPE Tool
-    URL "https://clang.llvm.org/extra/clang-tidy")
-set_package_properties(IWYU
-  PROPERTIES
-    DESCRIPTION "A tool to analyze #includes in C and C++ source files"
-    TYPE Tool
-    URL "https://include-what-you-use.org")
-set_package_properties(Sphinx
-  PROPERTIES
-    DESCRIPTION "Sphinx Documentation Generator"
-    TYPE Tool
-    URL "https://sphinx-doc.org")
-set_package_properties(SCCache
-  PROPERTIES
-    DESCRIPTION "Shared Compilation Cache"
-    TYPE Tool
-    URL "https://github.com/mozilla/sccache")
-
-if (NOT TARGET netlify::tests)
+if (NOT TARGET Catch2::Catch2)
   set(CATCH_BUILD_TESTING OFF)
   set(CATCH_ENABLE_WERROR OFF)
   set(CATCH_INSTALL_HELPERS OFF)
@@ -183,16 +174,31 @@ if (NOT TARGET netlify::tests)
     GIT_SHALLOW ON
     GIT_TAG v2.12.1)
   FetchContent_MakeAvailable(catch)
-  file(GENERATE OUTPUT "${PROJECT_BINARY_DIR}/tests/catch.cxx"
+endif()
+
+# Dummy file is needed so that the PCH file is actually generated.
+# But we can't use it for the CATCH_CONFIG_MAIN file, because
+# otherwise it generates *no symbols* (because it was included BEFORE
+# CATCH_CONFIG_MAIN).
+# This is why I just want to write my own unit testing library :(
+if (NOT TARGET netlify::tests)
+  set(catch-dummy "${PROJECT_BINARY_DIR}/tests/empty.cxx")
+  set(catch-main "${PROJECT_BINARY_DIR}/tests/catch.cxx")
+  file(GENERATE OUTPUT "${catch-dummy}" CONTENT "")
+  file(GENERATE OUTPUT "${catch-main}"
     CONTENT [[
       #define CATCH_CONFIG_MAIN
       #include <catch2/catch.hpp>
     ]])
   add_library(netlify-tests)
   add_library(netlify::tests ALIAS netlify-tests)
-  target_sources(netlify-tests PRIVATE "${PROJECT_BINARY_DIR}/tests/catch.cxx")
-  target_precompile_headers(netlify-tests INTERFACE <catch2/catch.hpp>)
-  target_link_libraries(netlify-tests PUBLIC Catch2::Catch2)
+  target_sources(netlify-tests PRIVATE "${catch-dummy}" "${catch-main}")
+  target_precompile_headers(netlify-tests PUBLIC <catch2/catch.hpp>)
+  target_link_libraries(netlify-tests
+      PUBLIC
+      #        $<$<BOOL:${${project-name}_WITH_COVERAGE}>:Coverage::LLVM>
+        Catch2::Catch2)
+  set_property(SOURCE "${catch-main}" PROPERTY SKIP_PRECOMPILE_HEADERS YES)
   target_compile_features(netlify-tests PUBLIC cxx_std_20)
   target_compile_options(netlify-tests
     PUBLIC
@@ -205,9 +211,7 @@ if (NOT TARGET netlify::tests)
       ${--warn-extra})
 endif()
 
-# Add tests targets
-# TODO: Move all general Catch related work into a separate section.
-# We can then have a common netlify::test harness
+
 if (${project-name}_BUILD_TESTS)
   add_library(netlify-${PROJECT_NAME}-tests INTERFACE)
   file(GLOB_RECURSE sources
@@ -220,10 +224,13 @@ if (${project-name}_BUILD_TESTS)
     string(JOIN "::" test-name test ${PROJECT_NAME} ${module} ${name})
     add_executable(${target})
     add_test(NAME ${test-name} COMMAND ${target})
+    set_property(TEST ${test-name} PROPERTY
+      ENVIRONMENT
+        LLVM_PROFILE_FILE=${PROJECT_BINARY_DIR}/profile/${target}.profraw)
     target_sources(${target} PRIVATE ${PROJECT_SOURCE_DIR}/tests/${source})
+    target_precompile_headers(${target} REUSE_FROM netlify-tests)
     target_link_libraries(${target}
       PRIVATE
-        $<$<BOOL:${${project-name}_WITH_COVERAGE}>:Coverage::Coverage>
         netlify-${PROJECT_NAME}-tests
         netlify::tests)
   endforeach()

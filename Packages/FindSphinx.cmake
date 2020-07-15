@@ -1,4 +1,5 @@
 include(FindPackageHandleStandardArgs)
+include(FeatureSummary)
 
 find_program(Sphinx_Build_EXECUTABLE NAMES sphinx-build)
 find_version(Sphinx_Build_VERSION COMMAND "${Sphinx_Build_EXECUTABLE}")
@@ -11,6 +12,11 @@ find_package_handle_standard_args(Sphinx
   REQUIRED_VARS Sphinx_Build_EXECUTABLE
   VERSION_VAR Sphinx_Build_VERSION
   HANDLE_COMPONENTS)
+
+set_package_properties(Sphinx
+  PROPERTIES
+    DESCRIPTION "Sphinx Documentation Generator"
+    URL "https://sphinx-doc.org")
 
 if (Sphinx_Build_FOUND AND NOT TARGET Sphinx::Build)
   add_executable(Sphinx::Build IMPORTED)
