@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 include(FeatureSummary)
 
+message(DEBUG "Netlify CMake Library has been included")
+
+set(CMAKE_MESSAGE_CONTEXT_SHOW YES)
+set(CMAKE_MESSAGE_CONTEXT netlify)
+
 set(file-api "${CMAKE_BINARY_DIR}/.cmake/api/v1/query")
 file(MAKE_DIRECTORY "${file-api}")
 file(TOUCH
@@ -17,21 +22,25 @@ set(NETLIFY_PROJECT_PRELUDE "${CMAKE_CURRENT_SOURCE_DIR}/Includes/Project.cmake"
 set(NETLIFY_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Includes/Toolchain.cmake"
   CACHE FILEPATH "Netlify's Specific Build Environment" FORCE)
 
-
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  message(DEBUG "Setting default Netlify toolchain file")
   set(CMAKE_TOOLCHAIN_FILE ${NETLIFY_TOOLCHAIN_FILE} CACHE FILEPATH
     "Netlify's Default C++ Toolchain")
 endif()
 
+message(DEBUG "Disabling in-source builds and source directory changes")
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON CACHE BOOL "Prevents cmake -B. -S.")
 set(CMAKE_DISABLE_SOURCE_CHANGES ON CACHE BOOL "Prevents writing files to CMAKE_CURRENT_SOURCE_DIR")
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW CACHE STRING "option() honors normal variables")
+
+message(DEBUG "Disabling export() interaction with find_package")
 set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE BOOL "")
 set(CMAKE_EXPORT_PACKAGE_REGISTRY OFF CACHE BOOL "")
 
 set(CMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY ON CACHE BOOL "")
 set(CMAKE_FIND_USE_PACKAGE_REGISTRY OFF CACHE BOOL "")
 
+message(DEBUG "Setting FeatureSummary Properties")
 set_property(GLOBAL APPEND PROPERTY FeatureSummary_PKG_TYPES Tool Sanitizers Development)
 set_property(GLOBAL PROPERTY FeatureSummary_REQUIRED_DESCRIPTION "build dependencies")
 

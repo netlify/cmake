@@ -3,6 +3,7 @@ include_guard(DIRECTORY)
 list(PREPEND CMAKE_MODULE_PATH "${NETLIFY_CMAKE_PACKAGES}")
 list(PREPEND CMAKE_MODULE_PATH "${NETLIFY_CMAKE_MODULES}")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MESSAGE_CONTEXT "${PROJECT_NAME}")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(THREADS_PREFER_PTHREAD_FLAG YES)
@@ -21,6 +22,7 @@ include(CTest)
 include(CheckCompilerDiagnostic)
 include(FindVersion)
 
+message(DEBUG "Searching for Sanitizers")
 # Build Dependencies
 find_package(UndefinedBehaviorSanitizer)
 find_package(AddressSanitizer)
@@ -31,8 +33,10 @@ find_package(SafeStack)
 find_package(Coverage COMPONENTS LLVM QUIET)
 find_package(Threads REQUIRED)
 
+message(DEBUG "Searching for tools")
 # Build Tooling Dependencies
 find_package(ClangFormat COMPONENTS Git)
+find_package(ClangCheck)
 find_package(ClangTidy)
 find_package(SCCache)
 find_package(Sphinx COMPONENTS Build)
@@ -115,6 +119,7 @@ cmake_dependent_option(${project-name}_WITH_TSAN
 #  "Build ${PROJECT_NAME} with Link Time Optimization" ON
 #  "CMAKE_BUILD_TYPE STREQUAL \"Release\";NETLIFY_IPO_SUPPORTED" OFF)
 
+message(DEBUG "Checking common compiler diagnostics")
 check_compiler_diagnostic(strict-aliasing)
 check_compiler_diagnostic(thread-safety)
 check_compiler_diagnostic(documentation)
@@ -159,6 +164,7 @@ set_property(DIRECTORY APPEND PROPERTY LINK_LIBRARIES
   #[[$<$<BOOL:${${project-name}_WITH_MSAN}>:Sanitizer::Memory>]]
   $<$<BOOL:${${project-name}_WITH_TSAN}>:Sanitizer::Thread>)
 
+message(DEBUG "Add common compile options")
 add_compile_options($<$<AND:$<COMPILE_LANG_AND_ID:CXX,Clang>,$<CONFIG:Debug>>:-ggdb3>)
 add_compile_options($<$<AND:$<COMPILE_LANG_AND_ID:CXX,Clang>,$<CONFIG:Debug>>:-Og>)
 add_compile_options($<$<COMPILE_LANG_AND_ID:CXX,Clang>:-fcolor-diagnostics>)
@@ -182,9 +188,10 @@ endif()
 # CATCH_CONFIG_MAIN).
 # This is why I just want to write my own unit testing library :(
 if (NOT TARGET netlify::tests)
+  message(DEBUG "Generate netlify::tests target")
   set(catch-dummy "${PROJECT_BINARY_DIR}/tests/empty.cxx")
   set(catch-main "${PROJECT_BINARY_DIR}/tests/catch.cxx")
-  file(GENERATE OUTPUT "${catch-dummy}" CONTENT "")
+  file(GENERATE OUTPUT "${catch-dummy}" CONTENT "#include <catch2/catch.hpp>")
   file(GENERATE OUTPUT "${catch-main}"
     CONTENT [[
       #define CATCH_CONFIG_MAIN
@@ -213,6 +220,7 @@ endif()
 
 
 if (${project-name}_BUILD_TESTS)
+  message(DEBUG "Generating unit test targets")
   add_library(netlify-${PROJECT_NAME}-tests INTERFACE)
   file(GLOB_RECURSE sources
     RELATIVE "${PROJECT_SOURCE_DIR}/tests"
