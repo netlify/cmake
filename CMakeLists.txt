@@ -17,6 +17,8 @@ set(NETLIFY_CMAKE_PACKAGES "${CMAKE_CURRENT_SOURCE_DIR}/Packages"
   CACHE PATH "Netlify CMake Packages" FORCE)
 set(NETLIFY_CMAKE_MODULES "${CMAKE_CURRENT_SOURCE_DIR}/Modules"
   CACHE PATH "Netlify CMake Modules" FORCE)
+set(NETLIFY_CMAKE_TEMPLATES "${CMAKE_CURRENT_SOURCE_DIR}/Templates"
+  CACHE PATH "Netlify Configuration Files Directory") 
 set(NETLIFY_PROJECT_PRELUDE "${CMAKE_CURRENT_SOURCE_DIR}/Includes/Project.cmake"
   CACHE FILEPATH "Netlify CMake Project Prelude" FORCE)
 set(NETLIFY_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Includes/Toolchain.cmake"

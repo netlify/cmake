@@ -13,7 +13,7 @@ function (find_version output)
     set(ARG_OPTION "--version")
   endif()
   if (NOT ARG_REGEX)
-    set(ARG_REGEX "[^0-9]+([0-9]+)[.]([0-9]+)?[.]?([0-9]+)?[.]?([0-9]+)?.*")
+    set(ARG_REGEX "[^0-9]*([0-9]+)[.]([0-9]+)?[.]?([0-9]+)?[.]?([0-9]+)?.*")
   endif()
   if (ARG_COMMAND AND NOT DEFINED ${output})
     execute_process(

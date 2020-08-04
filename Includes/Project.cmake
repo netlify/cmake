@@ -39,6 +39,7 @@ find_package(ClangFormat COMPONENTS Git)
 find_package(ClangCheck)
 find_package(ClangTidy)
 find_package(SCCache)
+find_package(Doxygen)
 find_package(Sphinx COMPONENTS Build)
 find_package(IWYU)
 
@@ -89,7 +90,7 @@ cmake_dependent_option(${project-name}_BUILD_TESTS
   "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;BUILD_TESTING" OFF)
 cmake_dependent_option(${project-name}_BUILD_DOCS
   "Build ${PROJECT_NAME} documentation" ON
-  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Sphinx::Build" OFF)
+  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Doxygen::Doxygen" OFF)
 
 cmake_dependent_option(${project-name}_WITH_COVERAGE
   "Build ${PROJECT_NAME} Tests with Code Coverage" ON
@@ -120,7 +121,9 @@ cmake_dependent_option(${project-name}_WITH_TSAN
 #  "CMAKE_BUILD_TYPE STREQUAL \"Release\";NETLIFY_IPO_SUPPORTED" OFF)
 
 message(DEBUG "Checking common compiler diagnostics")
+check_compiler_diagnostic(double-promotion)
 check_compiler_diagnostic(strict-aliasing)
+check_compiler_diagnostic(old-style-cast)
 check_compiler_diagnostic(thread-safety)
 check_compiler_diagnostic(documentation)
 check_compiler_diagnostic(uninitialized)
@@ -128,6 +131,7 @@ check_compiler_diagnostic(useless-cast)
 check_compiler_diagnostic(cast-align)
 check_compiler_diagnostic(lifetime)
 check_compiler_diagnostic(pedantic)
+check_compiler_diagnostic(unused)
 check_compiler_diagnostic(extra)
 
 # Setup Feature Summary Descriptions Here
@@ -151,7 +155,9 @@ set_package_properties(SafeStack PROPERTIES TYPE Sanitizers)
 set_package_properties(Coverage PROPERTIES TYPE Development)
 
 set_package_properties(ClangFormat PROPERTIES TYPE Tool)
+set_package_properties(ClangCheck PROPERTIES TYPE Tool)
 set_package_properties(ClangTidy PROPERTIES TYPE Tool)
+set_package_properties(Doxygen PROPERTIES TYPE Tool)
 set_package_properties(SCCache PROPERTIES TYPE Tool)
 set_package_properties(Sphinx PROPERTIES TYPE Tool)
 set_package_properties(IWYU PROPERTIES TYPE Tool)
@@ -246,12 +252,18 @@ endif()
 
 # Add documentation target
 if (${project-name}_BUILD_DOCS)
+  configure_file(
+    "${NETLIFY_CMAKE_TEMPLATES}/Doxyfile.in"
+    "${PROJECT_BINARY_DIR}/Doxyfile"
+    @ONLY)
   set(target ${PROJECT_NAME}-docs)
   if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(target docs)
   endif()
-  add_custom_target(${docs}
-    COMMAND Sphinx::Build "${PROJECT_SOURCE_DIR}/docs" "${PROJECT_BINARY_DIR}/docs")
+  add_custom_target(${target}
+    COMMAND Doxygen::Doxygen "${PROJECT_BINARY_DIR}/Doxyfile"
+    COMMENT "Generating Documentation"
+    VERBATIM)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${PROJECT_BINARY_DIR}/docs")
 endif()
 
