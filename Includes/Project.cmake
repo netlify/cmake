@@ -63,6 +63,9 @@ endif()
 
 if (TARGET Clang::Tidy AND NOT CMAKE_CXX_CLANG_TIDY)
   get_property(CMAKE_CXX_CLANG_TIDY TARGET Clang::Tidy PROPERTY IMPORTED_LOCATION)
+  if (EXISTS "${PROJECT_SOURCE_DIR}/.clang-format")
+    list(APPEND CMAKE_CXX_CLANG_TIDY "--format-style=file")
+  endif()
 endif()
 
 string(MAKE_C_IDENTIFIER "${PROJECT_NAME}" project-name)
@@ -91,6 +94,13 @@ cmake_dependent_option(${project-name}_BUILD_TESTS
 cmake_dependent_option(${project-name}_BUILD_DOCS
   "Build ${PROJECT_NAME} documentation" ON
   "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Doxygen::Doxygen" OFF)
+
+cmake_dependent_option(${project-name}_FORMAT_CHECK
+  "Run clang-format on ${PROJECT_NAME}" ON
+  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Clang::Format::Git" OFF)
+cmake_dependent_option(${project-name}_FORMAT_FIX
+  "Run clang-format --force on ${PROJECT_NAME}" OFF
+  "${project-name}_FORMAT_CHECK" OFF)
 
 cmake_dependent_option(${project-name}_WITH_COVERAGE
   "Build ${PROJECT_NAME} Tests with Code Coverage" ON
@@ -137,6 +147,8 @@ check_compiler_diagnostic(extra)
 # Setup Feature Summary Descriptions Here
 add_feature_info("Documentation" ${project-name}_BUILD_DOCS "Generate Documentation")
 add_feature_info("Unit Tests" ${project-name}_BUILD_TESTS "Enable Unit Tests")
+
+add_feature_info("Format" ${project-name}_FORMAT_CHECK "Run clang format")
 
 add_feature_info("Safe Stack" ${project-name}_WITH_SAFE_STACK "Enable Safe Stack instrumentation pass")
 add_feature_info("UBSan" ${project-name}_WITH_UBSAN "Enable UndefinedBehaviorSanitizer")
@@ -263,8 +275,29 @@ if (${project-name}_BUILD_DOCS)
   add_custom_target(${target}
     COMMAND Doxygen::Doxygen "${PROJECT_BINARY_DIR}/Doxyfile"
     COMMENT "Generating Documentation"
+    USES_TERMINAL
     VERBATIM)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${PROJECT_BINARY_DIR}/docs")
+endif()
+
+if (${project-name}_FORMAT_CHECK AND NOT TARGET fmt)
+  unset(format-dependencies)
+  unset(format-sources)
+  if (EXISTS "${PROJECT_SOURCE_DIR}/.clang-format")
+    set(format-dependencies DEPENDS "${PROJECT_SOURCE_DIR}/.clang-format")
+    set(format-sources SOURCES "${PROJECT_SOURCE_DIR}/.clang-format")
+  endif()
+  add_custom_target(fmt
+    COMMAND Clang::Format::Git
+      $<IF:$<BOOL:${${project-name}_FORMAT_FIX}>,--force,--diff>
+      --commit $<TARGET_PROPERTY:Clang::Format::Git,GIT_EMPTY_TREE_HASH>
+      --binary $<TARGET_PROPERTY:Clang::Format,IMPORTED_LOCATION>
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    ${format-dependencies}
+    ${format-sources}
+    COMMAND_EXPAND_LISTS
+    USES_TERMINAL
+    VERBATIM)
 endif()
 
 unset(CMAKE_PROJECT_INCLUDE)
