@@ -61,7 +61,7 @@ if (TARGET SCCache::SCCache AND NOT CMAKE_C_COMPILER_LAUNCHER)
   get_property(CMAKE_C_COMPILER_LAUNCHER TARGET SCCache::SCCache PROPERTY IMPORTED_LOCATION)
 endif()
 
-if (TARGET Clang::Tidy AND NOT CMAKE_CXX_CLANG_TIDY)
+if (TARGET Clang::Tidy AND NOT CMAKE_CXX_CLANG_TIDY AND NOT DEFINED ENV{GITHUB_ACTIONS})
   get_property(CMAKE_CXX_CLANG_TIDY TARGET Clang::Tidy PROPERTY IMPORTED_LOCATION)
   if (EXISTS "${PROJECT_SOURCE_DIR}/.clang-format")
     list(APPEND CMAKE_CXX_CLANG_TIDY "--format-style=file")
@@ -273,7 +273,11 @@ if (${project-name}_BUILD_DOCS)
     set(target docs)
   endif()
   add_custom_target(${target}
-    COMMAND Doxygen::Doxygen "${PROJECT_BINARY_DIR}/Doxyfile"
+    COMMAND Sphinx::Build
+      "${PROJECT_SOURCE_DIR}/docs"
+      "${PROJECT_BINARY_DIR}/docs"
+      --color
+    #    COMMAND Doxygen::Doxygen "${PROJECT_BINARY_DIR}/Doxyfile"
     COMMENT "Generating Documentation"
     USES_TERMINAL
     VERBATIM)
