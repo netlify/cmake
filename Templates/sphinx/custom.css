@@ -1,0 +1,9 @@
+dl {
+  margin-bottom: 1em !important;
+  margin-top: 1em !important;
+}
+
+div.danger::before { content: '💣'; }
+div.section { display: grid; }
+
+dl.field-list > dt { word-break: keep-all !important; }

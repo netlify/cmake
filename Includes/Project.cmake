@@ -39,7 +39,6 @@ find_package(ClangFormat COMPONENTS Git)
 find_package(ClangCheck)
 find_package(ClangTidy)
 find_package(SCCache)
-find_package(Doxygen)
 find_package(Sphinx COMPONENTS Build)
 find_package(IWYU)
 
@@ -88,12 +87,17 @@ list(APPEND memory-san-requirements "NOT ${project-name}_WITH_SAFE_STACK")
 list(APPEND memory-san-requirements "NOT ${project-name}_WITH_ASAN")
 list(APPEND memory-san-requirements "NOT ${project-name}_WITH_TSAN")
 
+list(APPEND sphinx-doc-requirements "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME")
+list(APPEND sphinx-doc-requirements "TARGET Sphinx::Build")
+list(APPEND sphinx-doc-requirements "IS_DIRECTORY ${PROJECT_SOURCE_DIR}/docs")
+list(APPEND sphinx-doc-requirements "EXISTS ${PROJECT_SOURCE_DIR}/docs/index.rst")
+
 cmake_dependent_option(${project-name}_BUILD_TESTS
   "Build ${PROJECT_NAME} unit tests" ON
   "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;BUILD_TESTING" OFF)
 cmake_dependent_option(${project-name}_BUILD_DOCS
   "Build ${PROJECT_NAME} documentation" ON
-  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Doxygen::Doxygen" OFF)
+  "${sphinx-doc-requirements}" OFF)
 
 cmake_dependent_option(${project-name}_FORMAT_CHECK
   "Run clang-format on ${PROJECT_NAME}" ON
@@ -264,21 +268,37 @@ endif()
 
 # Add documentation target
 if (${project-name}_BUILD_DOCS)
-  configure_file(
-    "${NETLIFY_CMAKE_TEMPLATES}/Doxyfile.in"
-    "${PROJECT_BINARY_DIR}/Doxyfile"
+  configure_file("${NETLIFY_CMAKE_TEMPLATES}/sphinx/conf.py.in"
+    "${PROJECT_BINARY_DIR}/sphinx-doc/conf.py"
     @ONLY)
+  configure_file("${NETLIFY_CMAKE_TEMPLATES}/sphinx/custom.css"
+    "${PROJECT_BINARY_DIR}/sphinx-doc/custom.css"
+    COPYONLY)
   set(target ${PROJECT_NAME}-docs)
   if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(target docs)
   endif()
+  file(GLOB_RECURSE docs
+    LIST_DIRECTORIES NO
+    CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/docs/*.rst")
+  # TODO: This can be turned into a 'better' custom command with more configurable
+  # settings so we can have full control over the build.
+  # This will be even 'easier' with CMake 3.19 and the ability to read JSON files
+  set(definitions $<TARGET_PROPERTY:${target},SPHINX_BUILD_DEFINITIONS>)
+  set(color $<TARGET_PROPERTY:${target},SPHINX_BUILD_COLOR>)
   add_custom_target(${target}
     COMMAND Sphinx::Build
       "${PROJECT_SOURCE_DIR}/docs"
       "${PROJECT_BINARY_DIR}/docs"
-      --color
-    #    COMMAND Doxygen::Doxygen "${PROJECT_BINARY_DIR}/Doxyfile"
+      -c "${PROJECT_BINARY_DIR}/sphinx-doc"
+      $<$<BOOL:${color}>:--color>
+      $<$<BOOL:${definitions}>:-D$<JOIN:${definitions},$<SEMICOLON>-D>>
+    SOURCES ${docs}
+    DEPENDS
+      "${PROJECT_BINARY_DIR}/sphinx-doc/custom.css"
+      "${PROJECT_BINARY_DIR}/sphinx-doc/conf.py"
     COMMENT "Generating Documentation"
+    COMMAND_EXPAND_LISTS
     USES_TERMINAL
     VERBATIM)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${PROJECT_BINARY_DIR}/docs")

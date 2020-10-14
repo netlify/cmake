@@ -1,0 +1,41 @@
+#project = '@PROJECT_NAME@'
+needs_sphinx = '3.2.1'
+exclude_patterns = ['_build']
+
+primary_domain = 'cpp'
+html_static_path = ['custom.css']
+
+html_css_files = [
+    'https://cdn.jsdelivr.net/npm/firacode@5/distr/fira_code.css',
+    'https://rsms.me/inter/inter.css',
+]
+
+dark = '#0E1E25'
+green = '#00AD9F'
+grey = '#2D3B41'
+white = '#FFFFFF'
+light_green = '#00C7B7'
+blue = '#0183BF'
+
+html_theme_options = dict(
+    sidebar_width='200px',
+    page_width='1200px',
+    codecov_button=True,
+    github_banner=True,
+    github_button=True,
+    badge_branch='main',
+
+    body_text=dark,
+    gray_1=grey,
+
+    sidebar_link_underscore=light_green,
+    sidebar_text=dark,
+
+    link=green,
+    link_hover=light_green,
+
+    code_font_family="'Fira Code VF', 'Fira Code', monospace",
+    font_family="'Inter var', 'Inter', sans-serif",
+)
+
+
