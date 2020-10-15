@@ -1,11 +1,12 @@
 list(APPEND CMAKE_MESSAGE_CONTEXT toolchain)
+
 find_program(LLVM_OBJCOPY_EXECUTABLE NAMES llvm-objcopy-10)
 find_program(LLVM_OBJDUMP_EXECUTABLE NAMES llvm-objdump-10)
 find_program(LLVM_RANLIB_EXECUTABLE NAMES llvm-ranlib-10)
 find_program(LLVM_AR_EXECUTABLE NAMES llvm-ar-10)
 find_program(LLVM_NM_EXECUTABLE NAMES llvm-nm-10)
 
-find_program(LLD_LINKER_EXECUTABLE NAMES lld-10)
+#find_program(LLD_LINKER_EXECUTABLE NAMES lld-10)
 
 find_program(SCCACHE_EXECUTABLE NAMES sccache)
 
