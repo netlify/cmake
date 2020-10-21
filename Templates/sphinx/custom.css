@@ -4,6 +4,7 @@ dl {
 }
 
 div.danger::before { content: '💣'; }
+div.note::before { content: 'ℹ'; }
 div.section { display: grid; }
 
 dl.field-list > dt { word-break: keep-all !important; }

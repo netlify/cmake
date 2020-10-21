@@ -38,4 +38,12 @@ html_theme_options = dict(
     font_family="'Inter var', 'Inter', sans-serif",
 )
 
-
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        'donate.html',
+    ]
+}

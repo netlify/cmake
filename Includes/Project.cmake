@@ -135,6 +135,8 @@ cmake_dependent_option(${project-name}_WITH_TSAN
 #  "CMAKE_BUILD_TYPE STREQUAL \"Release\";NETLIFY_IPO_SUPPORTED" OFF)
 
 message(DEBUG "Checking common compiler diagnostics")
+check_compiler_diagnostic(uninitialized-const-reference)
+check_compiler_diagnostic(pointer-to-int-cast)
 check_compiler_diagnostic(double-promotion)
 check_compiler_diagnostic(strict-aliasing)
 check_compiler_diagnostic(old-style-cast)
@@ -147,6 +149,11 @@ check_compiler_diagnostic(lifetime)
 check_compiler_diagnostic(pedantic)
 check_compiler_diagnostic(unused)
 check_compiler_diagnostic(extra)
+
+# Temporarily disabled until we can confirm it works with tools
+if (FALSE AND CMAKE_VERSION VERSION_LESS 3.19)
+  list(APPEND CMAKE_CXX_COMPILE_OPTIONS_CRATE_PCH -fpch-instantiate-templates)
+endif()
 
 # Setup Feature Summary Descriptions Here
 add_feature_info("Documentation" ${project-name}_BUILD_DOCS "Generate Documentation")
@@ -219,7 +226,7 @@ if (NOT TARGET netlify::tests)
       #define CATCH_CONFIG_MAIN
       #include <catch2/catch.hpp>
     ]])
-  add_library(netlify-tests)
+  add_library(netlify-tests EXCLUDE_FROM_ALL)
   add_library(netlify::tests ALIAS netlify-tests)
   target_sources(netlify-tests PRIVATE "${catch-dummy}" "${catch-main}")
   target_precompile_headers(netlify-tests PUBLIC <catch2/catch.hpp>)

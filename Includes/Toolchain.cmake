@@ -14,7 +14,6 @@ find_program(ClangFormat_EXECUTABLE NAMES clang-format-10)
 find_program(ClangCheck_EXECUTABLE NAMES clang-check-10)
 find_program(ClangTidy_EXECUTABLE NAMES clang-tidy-10)
 
-
 find_program(CMAKE_CXX_COMPILER clang++-10)
 find_program(CMAKE_C_COMPILER clang-10)
 
