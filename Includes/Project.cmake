@@ -293,6 +293,7 @@ if (${project-name}_BUILD_DOCS)
   set(definitions $<TARGET_PROPERTY:${target},SPHINX_BUILD_DEFINITIONS>)
   set(copyright $<TARGET_PROPERTY:${target},SPHINX_COPYRIGHT_OWNER>)
   set(project $<TARGET_PROPERTY:${target},SPHINX_PROJECT_NAME>)
+  set(author $<TARGET_PROPERTY:${target},SPHINX_PROJECT_AUTHOR>)
   set(color $<TARGET_PROPERTY:${target},SPHINX_BUILD_COLOR>)
   add_custom_target(${target}
     COMMAND Sphinx::Build
@@ -311,7 +312,9 @@ if (${project-name}_BUILD_DOCS)
   set_property(TARGET ${target}
     APPEND PROPERTY
       SPHINX_BUILD_DEFINITIONS project=$<IF:$<BOOL:${project}>,${project},${PROJECT_NAME}>)
+  set_property(TARGET ${target} APPEND PROPERTY SPHINX_BUILD_DEFINITIONS version=${PROJECT_VERSION})
   set_property(TARGET ${target} APPEND PROPERTY SPHINX_BUILD_DEFINITIONS $<$<BOOL:${copyright}>:copyright=${copyright}>)
+  set_property(TARGET ${target} APPEND PROPERTY SPHINX_BUILD_DEFINITIONS $<$<BOOL:${author}>:author=${author}>)
 endif()
 
 if (${project-name}_FORMAT_CHECK AND NOT TARGET fmt)
