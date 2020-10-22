@@ -63,9 +63,6 @@ def assign_github_properties(app, config):
     repo = config.github.get('repo')
 
     if not user and not repo: return
-    if not config.project.istitle():
-        config.project = config.project.capitalize()
-
     links = dict(
         issue=(f'https://github.com/{user}/{repo}/issues/%s', 'GH-'),
         pr=(f'https://github.com/{user}/{repo}/pulls/%s', 'GH-'))

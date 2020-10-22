@@ -292,6 +292,7 @@ if (${project-name}_BUILD_DOCS)
   # This will be even 'easier' with CMake 3.19 and the ability to read JSON files
   set(definitions $<TARGET_PROPERTY:${target},SPHINX_BUILD_DEFINITIONS>)
   set(copyright $<TARGET_PROPERTY:${target},SPHINX_COPYRIGHT_OWNER>)
+  set(project $<TARGET_PROPERTY:${target},SPHINX_PROJECT_NAME>)
   set(color $<TARGET_PROPERTY:${target},SPHINX_BUILD_COLOR>)
   add_custom_target(${target}
     COMMAND Sphinx::Build
@@ -307,7 +308,9 @@ if (${project-name}_BUILD_DOCS)
     USES_TERMINAL
     VERBATIM)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${PROJECT_BINARY_DIR}/docs")
-  set_property(TARGET ${target} APPEND PROPERTY SPHINX_BUILD_DEFINITIONS project=${PROJECT_NAME})
+  set_property(TARGET ${target}
+    APPEND PROPERTY
+      SPHINX_BUILD_DEFINITIONS project=$<IF:$<BOOL:${project}>,${project},${PROJECT_NAME}>)
   set_property(TARGET ${target} APPEND PROPERTY SPHINX_BUILD_DEFINITIONS $<$<BOOL:${copyright}>:copyright=${copyright}>)
 endif()
 
