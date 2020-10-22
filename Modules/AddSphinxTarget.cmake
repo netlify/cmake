@@ -33,8 +33,8 @@ function (add_sphinx_target name type)
   set(project-copyright $<TARGET_PROPERTY:${target},SPHINX_PROJECT_COPYRIGHT>)
   set(project-version $<TARGET_PROPERTY:${target},SPHINX_PROJECT_VERSION>)
   set(project-release $<TARGET_PROPERTY:${target},SPHINX_PROJECT_RELEASE>)
-  set(project-project $<TARGET_PROPERTY:${target},SPHINX_PROJECT_NAME>)
   set(project-author $<TARGET_PROPERTY:${target},SPHINX_PROJECT_AUTHOR>)
+  set(project-name $<TARGET_PROPERTY:${target},SPHINX_PROJECT_NAME>)
 
   # console configuration
   set(console-breakpoint $<TARGET_PROPERTY:${target},SPHINX_CONSOLE_BREAKPOINT>)

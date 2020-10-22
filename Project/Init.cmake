@@ -1,6 +1,5 @@
 # NOTE: This is very VERY close to what an IXM blueprint looks like
 # Using this layout will make using IXM a lot easier once it's available.
-include_guard(DIRECTORY)
 unset(CMAKE_PROJECT_INCLUDE)
 
 list(PREPEND CMAKE_MODULE_PATH "${NETLIFY_CMAKE_PACKAGES}")

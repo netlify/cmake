@@ -1,7 +1,5 @@
 include_guard(GLOBAL)
-
 include(AddSphinxTarget)
-
 include(FetchContent)
 include(CTest)
 
@@ -14,7 +12,6 @@ function (netlify_generate_test_harness)
   if (TARGET netlify::tests)
     return()
   endif()
-  message(DEBUG "Generating netlify::tests target")
   FetchContent_Declare(catch
     GIT_REPOSITORY https://github.com/catchorg/Catch2
     GIT_TAG v2.13.2)
