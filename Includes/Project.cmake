@@ -275,12 +275,11 @@ endif()
 
 # Add documentation target
 if (${project-name}_BUILD_DOCS)
-  configure_file("${NETLIFY_CMAKE_TEMPLATES}/sphinx/conf.py.in"
-    "${PROJECT_BINARY_DIR}/sphinx-doc/conf.py"
-    @ONLY)
-  configure_file("${NETLIFY_CMAKE_TEMPLATES}/sphinx/custom.css"
-    "${PROJECT_BINARY_DIR}/sphinx-doc/custom.css"
-    COPYONLY)
+  foreach (filename IN ITEMS docutils.conf conf.py custom.css)
+    set(output "${PROJECT_BINARY_DIR}/sphinx-doc/${filename}")
+    configure_file("${NETLIFY_CMAKE_TEMPLATES}/sphinx/${filename}" "${output}" COPYONLY)
+    list(APPEND docs-depends "${output}")
+  endforeach ()
   set(target ${PROJECT_NAME}-docs)
   if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(target docs)
@@ -292,6 +291,7 @@ if (${project-name}_BUILD_DOCS)
   # settings so we can have full control over the build.
   # This will be even 'easier' with CMake 3.19 and the ability to read JSON files
   set(definitions $<TARGET_PROPERTY:${target},SPHINX_BUILD_DEFINITIONS>)
+  set(copyright $<TARGET_PROPERTY:${target},SPHINX_COPYRIGHT_OWNER>)
   set(color $<TARGET_PROPERTY:${target},SPHINX_BUILD_COLOR>)
   add_custom_target(${target}
     COMMAND Sphinx::Build
@@ -299,16 +299,16 @@ if (${project-name}_BUILD_DOCS)
       "${PROJECT_BINARY_DIR}/docs"
       -c "${PROJECT_BINARY_DIR}/sphinx-doc"
       $<$<BOOL:${color}>:--color>
-      $<$<BOOL:${definitions}>:-D$<JOIN:${definitions},$<SEMICOLON>-D>>
+      $<$<BOOL:${definitions}>:-D$<JOIN:$<TARGET_GENEX_EVAL:${target},${definitions}>,$<SEMICOLON>-D>>
     SOURCES ${docs}
-    DEPENDS
-      "${PROJECT_BINARY_DIR}/sphinx-doc/custom.css"
-      "${PROJECT_BINARY_DIR}/sphinx-doc/conf.py"
+    DEPENDS ${docs-depends}
     COMMENT "Generating Documentation"
     COMMAND_EXPAND_LISTS
     USES_TERMINAL
     VERBATIM)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${PROJECT_BINARY_DIR}/docs")
+  set_property(TARGET ${target} APPEND PROPERTY SPHINX_BUILD_DEFINITIONS project=${PROJECT_NAME})
+  set_property(TARGET ${target} APPEND PROPERTY SPHINX_BUILD_DEFINITIONS $<$<BOOL:${copyright}>:copyright=${copyright}>)
 endif()
 
 if (${project-name}_FORMAT_CHECK AND NOT TARGET fmt)
