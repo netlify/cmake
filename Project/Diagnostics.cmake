@@ -1,0 +1,18 @@
+#[[ All compiler diagnostics are checked here ]]
+include(CheckCompilerDiagnostic)
+
+message(DEBUG "Checking common compiler diagnostics")
+check_compiler_diagnostic(uninitialized-const-reference)
+check_compiler_diagnostic(pointer-to-int-cast)
+check_compiler_diagnostic(double-promotion)
+check_compiler_diagnostic(strict-aliasing)
+check_compiler_diagnostic(old-style-cast)
+check_compiler_diagnostic(thread-safety)
+check_compiler_diagnostic(documentation)
+check_compiler_diagnostic(uninitialized)
+check_compiler_diagnostic(useless-cast)
+check_compiler_diagnostic(cast-align)
+check_compiler_diagnostic(lifetime)
+check_compiler_diagnostic(pedantic)
+check_compiler_diagnostic(unused)
+check_compiler_diagnostic(extra)

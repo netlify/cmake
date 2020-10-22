@@ -1,6 +1,7 @@
 include_guard(GLOBAL)
 
 include(CheckCXXCompilerFlag)
+include(CheckCCompilerFlag)
 
 #[[
 Given a diagnostic like strict-aliasing, we check if the given flag works for a

@@ -1,5 +1,6 @@
 include(FindPackageHandleStandardArgs)
 include(FeatureSummary)
+include(FindVersion)
 
 find_program(ClangTidy_EXECUTABLE NAMES clang-tidy)
 find_version(ClangTidy_VERSION COMMAND "${ClangTidy_EXECUTABLE}")

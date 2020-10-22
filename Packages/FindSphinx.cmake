@@ -1,5 +1,6 @@
 include(FindPackageHandleStandardArgs)
 include(FeatureSummary)
+include(FindVersion)
 
 find_program(Sphinx_Build_EXECUTABLE NAMES sphinx-build)
 find_version(Sphinx_Build_VERSION COMMAND "${Sphinx_Build_EXECUTABLE}")
