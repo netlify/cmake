@@ -1,4 +1,5 @@
 include(FindPackageHandleStandardArgs)
+include(FindVersion)
 
 find_library(TrafficServer_Management_LIBRARY NAMES tsmgmt PATH_SUFFIXES trafficserver)
 find_library(TrafficServer_Config_LIBRARY NAMES tsconfig PATH_SUFFIXES trafficserver)

@@ -1,5 +1,6 @@
 include(FindPackageHandleStandardArgs)
 include(FeatureSummary)
+include(FindVersion)
 
 find_program(ClangCheck_EXECUTABLE NAMES clang-check)
 find_version(ClangCheck_VERSION COMMAND "${ClangCheck_EXECUTABLE}")

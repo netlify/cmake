@@ -1,5 +1,6 @@
 include(FindPackageHandleStandardArgs)
 include(FeatureSummary)
+include(FindVersion)
 
 find_program(SCCache_EXECUTABLE NAMES sccache)
 find_version(SCCache_VERSION COMMAND "${SCCache_EXECUTABLE}" DOC "SCCache Version")
@@ -19,4 +20,3 @@ if (SCCache_FOUND AND NOT TARGET SCCache::SCCache)
   set_property(TARGET SCCache::SCCache PROPERTY VERSION ${SCCache_VERSION})
   mark_as_advanced(SCCache_VERSION SCCache_EXECUTABLE)
 endif()
-

@@ -1,5 +1,6 @@
 include(FindPackageHandleStandardArgs)
 include(FeatureSummary)
+include(FindVersion)
 
 find_program(ClangFormat_Git_EXECUTABLE NAMES git-clang-format)
 find_program(ClangFormat_EXECUTABLE NAMES clang-format)
