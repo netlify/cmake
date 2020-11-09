@@ -58,13 +58,15 @@ cmake_dependent_option(${project-name}_WITH_MSAN
   "${memory-san-requirements};NO" OFF)
 
 # Setup Feature Summary Descriptions Here
-add_feature_info("Documentation" ${project-name}_BUILD_DOCS "Generate Documentation")
-add_feature_info("Unit Tests" ${project-name}_BUILD_TESTS "Enable Unit Tests")
+if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  add_feature_info("Documentation" ${project-name}_BUILD_DOCS "Generate Documentation")
+  add_feature_info("Unit Tests" ${project-name}_BUILD_TESTS "Enable Unit Tests")
 
-add_feature_info("Format" ${project-name}_FORMAT_CHECK "Run clang format")
+  add_feature_info("Format" ${project-name}_FORMAT_CHECK "Run clang format")
 
-add_feature_info("Safe Stack" ${project-name}_WITH_SAFE_STACK "Enable Safe Stack instrumentation pass")
-add_feature_info("UBSan" ${project-name}_WITH_UBSAN "Enable UndefinedBehaviorSanitizer")
-add_feature_info("ASan" ${project-name}_WITH_ASAN "Enable AddressSanitizer")
-add_feature_info("TSan" ${project-name}_WITH_TSAN "Enable ThreadSanitizer")
-add_feature_info("MSan" ${project-name}_WITH_MSAN "Enable MemorySanitizer")
+  add_feature_info("Safe Stack" ${project-name}_WITH_SAFE_STACK "Enable Safe Stack instrumentation pass")
+  add_feature_info("UBSan" ${project-name}_WITH_UBSAN "Enable UndefinedBehaviorSanitizer")
+  add_feature_info("ASan" ${project-name}_WITH_ASAN "Enable AddressSanitizer")
+  add_feature_info("TSan" ${project-name}_WITH_TSAN "Enable ThreadSanitizer")
+  add_feature_info("MSan" ${project-name}_WITH_MSAN "Enable MemorySanitizer")
+endif()
